@@ -1,0 +1,301 @@
+<html lang="en">
+  {% load static %}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>music player</title>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}" />
+    <link rel="apple-touch-icon" href="/static/img/logo.png" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header__logo">
+          <div class="header__background">
+            <svg class="header__icon">
+              <use href="/static/img/newicons.svg#icon-headphones"></use>
+            </svg>
+          </div>
+          <p class="header__webname">Musify</p>
+        </div>
+
+        <form class="search">
+          <input
+            type="text"
+            class="search__field"
+            placeholder="Listen over 1,000 songs..."
+          />
+          <button class="btn search__btn">
+            <svg class="search__icon">
+              <use href="/static/img/icons.svg#icon-search"></use>
+            </svg>
+            <span>Search</span>
+          </button>
+        </form>
+
+        <div class="app-btn">
+          <svg class="app-icon">
+            <use href="/static/img/app.svg#icon-menu"></use>
+          </svg>
+        </div>
+      </header>
+
+      <div class="side-main">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+          <nav class="navbar">
+            <ul class="navbar__list">
+              <li class="navbar__item">
+                <svg class="navbar__icon">
+                  <use href="/static/img/newicons.svg#icon-home"></use>
+                </svg>
+                <a href="#" class="navbar__link">Home</a>
+              </li>
+              <li class="navbar__item">
+                <svg class="navbar__icon">
+                  <use href="/static/img/newicons.svg#icon-music"></use>
+                </svg>
+                <a href="#" class="navbar__link">Songs</a>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="songs">
+            <ul class="songs__list">
+              {% for song in songs %}
+              <li class="songs__item" data-song-url="{{ song.song_file.url }}">
+                <figure class="songs__fig">
+                  <img src="{{ song.cover_image.url }}" alt="{{ song.name }}" />
+                </figure>
+                <div class="songs__data">
+                  <h4 class="songs__title">{{ song.name }}</h4>
+                  <p class="songs__artist">{{ song.artist }}</p>
+                </div>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          <p class="copyright">&copy; Aditya Dhamanekar</p>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main">
+          <section class="covers">
+            <img
+              src="{% static 'covers/1.jpg' %}"
+              alt="cover photo"
+              class="covers__photo"
+            />
+            <img
+              src="{% static 'covers/21.jpg' %}"
+              alt="cover photo"
+              class="covers__photo"
+            />
+            <img
+              src="{% static 'covers/23.jpg' %}"
+              alt="cover photo"
+              class="covers__photo"
+            />
+            <img
+              src="{% static 'covers/22.jpg' %}"
+              alt="cover photo"
+              class="covers__photo"
+            />
+          </section>
+
+          <section class="covers-info">
+            <img
+              src="/static/covers/3.jpg"
+              alt="image"
+              class="covers-display"
+            />
+
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                width: 50%;
+                margin-top: 3rem;
+              "
+            >
+              <svg class="navbar__icon delete__song">
+                <use href="/static/img/music.svg#icon-bin"></use>
+              </svg>
+              <svg class="navbar__icon" style="width: 2.5rem; height: 2.5rem">
+                <use href="/static/img/music.svg#icon-heart-outlined"></use>
+              </svg>
+              {% comment %}
+              <svg class="navbar__icon">
+                <use href="/static/img/music.svg#icon-bin"></use>
+              </svg>
+              {% endcomment %}
+            </div>
+          </section>
+        </main>
+
+        <div class="sidebar-right">
+          <h1 style="margin-top: 1rem">Add New Song</h1>
+          <form
+            id="songUploadForm"
+            enctype="multipart/form-data"
+            method="post"
+            class="song-form"
+          >
+            {% csrf_token %}
+            <input
+              type="text"
+              name="name"
+              placeholder="Song Name"
+              required
+              class="input__field"
+            />
+            <input
+              type="text"
+              name="artist"
+              placeholder="Artist Name"
+              required
+              class="input__field"
+            />
+            <div style="display: flex; gap: 2rem; margin: 1rem">
+              <div class="custom-file-upload">
+                <label for="coverImage">Choose Cover Image</label>
+                <input
+                  type="file"
+                  id="coverImage"
+                  name="cover_image"
+                  accept="image/*"
+                  required
+                />
+              </div>
+              <div class="custom-file-upload">
+                <label for="audioFile">Choose Audio File</label>
+                <input
+                  type="file"
+                  id="audioFile"
+                  name="audio_file"
+                  accept="audio/*"
+                  required
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              style="
+                background-image: linear-gradient(
+                  to right bottom,
+                  #fbdb89,
+                  #f48982
+                );
+                border: none;
+                color: white;
+                padding: 12px 24px;
+                font-size: 16px;
+                font-weight: bold;
+                border-radius: 8px;
+                cursor: pointer;
+                transition: all 0.3s ease-in-out;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              "
+            >
+              Upload Song
+            </button>
+          </form>
+
+          {% comment %} confirmation box {% endcomment %}
+          <div id="deleteConfirmModal" class="modal hidden">
+            <div class="modal-content">
+              <h2>Are you sure you want to delete this song?</h2>
+              <p class="deleting__songname">
+                You are deleting: <span id="deletingSongName"></span>
+              </p>
+
+              <form id="deleteSongForm" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="deleteSongName" name="song_name" />
+
+                <div style="display: flex; gap: 2rem; margin: 1rem">
+                  <button type="submit" class="btn btn-danger">
+                    Yes, Delete
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    id="cancelDelete"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer class="song">
+        <div class="song__info">
+          <figure class="song__cover"></figure>
+          <div class="song__media">
+            <p class="song__name">wanna be yours</p>
+            <span class="song__artist">artistic monkey</span>
+          </div>
+        </div>
+
+        <div class="song__function">
+          <div class="song__buttons">
+            <div class="song__btn">
+              <svg class="song__icons song__loop">
+                <use href="/static/img/newicons.svg#icon-loop"></use>
+              </svg>
+            </div>
+
+            <div class="song__btn">
+              <svg class="song__icons song__previous">
+                <use href="/static/img/newicons.svg#icon-previous2"></use>
+              </svg>
+            </div>
+
+            <div class="song__btn">
+              <svg class="song__icons song__play">
+                <use href="/static/img/newicons.svg#icon-play3"></use>
+              </svg>
+            </div>
+
+            <div class="song__btn">
+              <svg class="song__icons song__next">
+                <use href="/static/img/newicons.svg#icon-next2"></use>
+              </svg>
+            </div>
+
+            <div class="song__btn">
+              <svg class="song__icons song__shuffle">
+                <use href="/static/img/newicons.svg#icon-shuffle"></use>
+              </svg>
+            </div>
+          </div>
+
+          <div class="song__playbar">
+            <input type="range" min="0" max="100" class="song__range" />
+            <div class="song__time">
+              <div class="song__current-time">00:00</div>
+              <div class="song__duration">04:00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="song__features">
+          <svg class="song__mute">
+            <use href="/static/img/newicons.svg#icon-volume-medium"></use>
+          </svg>
+          <input type="range" class="song__volume" />
+        </div>
+      </footer>
+    </div>
+    {% load static %}
+    <script src="{% static 'js/script.js' %}"></script>
+  </body>
+</html>
